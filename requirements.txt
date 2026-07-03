@@ -1,0 +1,25 @@
+# Verbatim — runtime + test dependencies (Python 3.11+, CPU-only, Windows-friendly)
+fastapi
+uvicorn[standard]
+python-multipart
+torch
+torchaudio==2.9.0   # deve combaciare con la versione di torch (silero-vad importa torchaudio)
+transformers
+onnx-asr[cpu,hub]
+silero-vad
+soundfile
+numpy
+python-docx
+# diarizzazione interlocutori (offline): pesi inclusi in resemblyzer (nessun download).
+# NB: resemblyzer dipende da 'webrtcvad' che non ha wheel per Python 3.12 -> usiamo
+# 'webrtcvad-wheels' (fornisce lo stesso modulo) e installiamo resemblyzer SENZA dipendenze.
+# Vedi install.bat / README per l'ordine corretto dei comandi.
+webrtcvad-wheels
+librosa
+scikit-learn
+# poi, separatamente:  pip install resemblyzer --no-deps
+# test fixture synthesis (Windows SAPI5 via pyttsx3) + test runner
+pyttsx3
+pytest
+# --- optional fallback for the READABLE layer (see DECISIONS.md D1) ---
+# faster-whisper

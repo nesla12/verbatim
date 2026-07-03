@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verbatim — trascrizione fedele, parola per parola</title>
+  <!-- favicon inline (SVG data URI): nessuna richiesta di rete -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234b3f8f'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='20' fill='white' text-anchor='middle'%3EV%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <!-- ===== Primo avvio: disclaimer legale (una tantum) ===== -->
+  <div id="legal" class="overlay hidden">
+    <div class="overlay-card legal-card">
+      <div class="wordmark">Verbatim</div>
+      <h2>Prima di iniziare</h2>
+      <div class="legal-body" id="legalBody">
+        <p><strong>Cos'è.</strong> Verbatim è uno strumento di supporto alla trascrizione fedele
+          del parlato, pensato per uso educativo e clinico. <strong>Non è un dispositivo medico</strong>
+          e non fornisce diagnosi.</p>
+        <p><strong>Verifica umana.</strong> La trascrizione è generata automaticamente e
+          <strong>può contenere errori</strong>. Va sempre riletta e corretta da una persona prima
+          di essere usata o citata.</p>
+        <p><strong>Consenso e privacy (GDPR).</strong> Registrare e trascrivere la voce di una
+          persona — in particolare di un minore — richiede un <strong>consenso valido</strong>
+          (di norma di chi esercita la responsabilità genitoriale). Sei tu il responsabile del
+          trattamento: assicurati di avere il consenso e di conservare i file in modo sicuro.</p>
+        <p><strong>Dove restano i dati.</strong> Verbatim funziona <strong>solo sul tuo
+          computer</strong>. L'audio non viene mai caricato online. I file restano dove li tieni tu.</p>
+        <p><strong>Nessuna garanzia.</strong> Il software è fornito "così com'è", senza garanzie.
+          L'autore non è responsabile dell'uso che ne viene fatto. Licenza MIT (open source).</p>
+      </div>
+      <label class="legal-check">
+        <input type="checkbox" id="legalChk" />
+        <span>Ho letto e accetto. Ho o otterrò il consenso necessario e verificherò la trascrizione.</span>
+      </label>
+      <button id="legalBtn" class="btn" disabled>Accetto e continuo</button>
+    </div>
+  </div>
+
+  <!-- ===== Primo avvio: download modelli (una tantum) ===== -->
+  <div id="setup" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="wordmark">Verbatim</div>
+      <h2>Preparazione iniziale</h2>
+      <p id="setupMsg">Per funzionare offline, Verbatim deve scaricare una sola volta i
+        modelli linguistici (circa 1,5 GB). Serve una connessione a Internet adesso; dopo, il
+        programma funziona <strong>senza rete</strong>. Ci vogliono pochi minuti.</p>
+      <button id="setupBtn" class="btn">Scarica i modelli</button>
+      <p id="setupProgress" class="setup-progress" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <!-- ===== Schermata iniziale: presentazione + caricamento + libreria ===== -->
+  <div id="home" class="home">
+    <header class="home-head">
+      <div class="brand">
+        <span class="wordmark">Verbatim</span>
+      </div>
+      <nav class="home-nav">
+        <button class="link-btn" data-open="help">Come funziona</button>
+        <button class="link-btn" data-open="about">Informazioni</button>
+      </nav>
+    </header>
+
+    <main class="home-main">
+      <!-- USP -->
+      <section class="hero">
+        <h1 class="hero-title">Trascrive esattamente come è stato detto.<br>Parola per parola.</h1>
+        <p class="hero-sub">
+          Anche parole inventate, errori di pronuncia e frasi sgrammaticate restano intatti.
+          A differenza degli altri strumenti, Verbatim <strong>non “corregge”</strong> il testo
+          verso parole plausibili. Nato per trascrivere interviste con bambini, per uso
+          educativo e clinico.
+        </p>
+        <div class="privacy-badge">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 10V8a6 6 0 1 1 12 0v2m-13 0h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1Z"/></svg>
+          <span><strong>100% sul tuo computer.</strong> L'audio non viene mai caricato online.
+            Nessun cloud, nessun account. Dopo il primo avvio funziona anche <strong>offline</strong>.</span>
+        </div>
+      </section>
+
+      <!-- Caricamento -->
+      <section id="dropzone" class="dropzone">
+        <svg class="dz-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 15V4m0 0L8 8m4-4 4 4" />
+          <path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1" />
+        </svg>
+        <p class="dz-title">Trascina qui un file audio o video</p>
+        <p class="dz-sub">oppure</p>
+        <label class="btn">
+          Scegli dal computer
+          <input id="fileInput" type="file" accept="audio/*,video/*" multiple hidden />
+        </label>
+        <p class="dz-formats" id="dzFormats">
+          Audio e video (da un video estrae solo l'audio).
+        </p>
+        <p id="dzError" class="dz-error hidden" aria-live="polite"></p>
+      </section>
+
+      <section id="jobs" class="jobs" aria-live="polite"></section>
+
+      <!-- Come funziona (3 passi) -->
+      <section class="how">
+        <h2 class="section-h">Come funziona</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-n">1</span>
+            <div><strong>Trascina il file</strong><p>Un file audio o un video. Resta tutto sul tuo computer.</p></div>
+          </li>
+          <li>
+            <span class="step-n">2</span>
+            <div><strong>Verifica e correggi</strong><p>Clicca una parola per riascoltarla; sistema ciò che serve. Puoi indicare chi parla.</p></div>
+          </li>
+          <li>
+            <span class="step-n">3</span>
+            <div><strong>Esporta in Word</strong><p>Scarichi la trascrizione in .docx o .txt, pronta da usare.</p></div>
+          </li>
+        </ol>
+
+        <div class="layers">
+          <div class="layer">
+            <span class="layer-tag layer-lit">Testo letterale</span>
+            <p>La riga principale. Fedele al 100%: nessun modello linguistico “aggiusta” le parole.
+              È il cuore di Verbatim e ciò che lo rende diverso.</p>
+          </div>
+          <div class="layer">
+            <span class="layer-tag layer-ref">Riferimento</span>
+            <p>Una seconda riga, più leggibile e “ripulita”, mostrata solo come aiuto per capire
+              il contesto. Non sostituisce mai il testo letterale.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Limiti e tempi -->
+      <section class="limits">
+        <h2 class="section-h">Quanto ci mette, quanto lungo</h2>
+        <div class="limits-grid">
+          <div class="limit">
+            <span class="limit-k">Durata per file</span>
+            <span class="limit-v">fino a ~60 min</span>
+            <p>Per file molto lunghi conviene dividerli: la revisione è più comoda.</p>
+          </div>
+          <div class="limit">
+            <span class="limit-k">Tempo di elaborazione</span>
+            <span class="limit-v">circa 1–3× la durata</span>
+            <p>Su un computer senza scheda grafica dedicata, ~1–3 minuti di attesa per ogni minuto
+              di audio. Puoi continuare a usare il computer nel frattempo.</p>
+          </div>
+          <div class="limit">
+            <span class="limit-k">Connessione</span>
+            <span class="limit-v">solo al primo avvio</span>
+            <p>Serve internet una sola volta per scaricare i modelli. Poi funziona offline.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Libreria -->
+      <section class="library">
+        <div class="library-head">
+          <h2 class="section-h">Le tue trascrizioni</h2>
+          <div class="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="librarySearch" type="search" placeholder="Cerca per nome…" autocomplete="off" />
+          </div>
+        </div>
+        <div id="library" class="library-list"></div>
+        <p id="libraryEmpty" class="library-empty hidden">
+          Ancora nessuna trascrizione. Trascina un file qui sopra per iniziare.
+        </p>
+      </section>
+    </main>
+
+    <footer class="home-foot">
+      <span>Creato da <strong>Lorenzo Nesler</strong> ·
+        <a href="https://aiautomationcoach.com" target="_blank" rel="noopener">aiautomationcoach.com</a>
+        · Open source (MIT)</span>
+    </footer>
+  </div>
+
+  <!-- ===== Schermata di revisione ===== -->
+  <section id="review" class="review hidden">
+    <div class="toolbar">
+      <button id="backBtn" class="btn ghost" aria-label="Torna ai file">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        File
+      </button>
+      <div class="proj-meta">
+        <span id="projName" class="proj-name" title="Clicca per rinominare" tabindex="0" role="button"></span>
+      </div>
+      <div class="spacer"></div>
+      <button id="diarBtn" class="btn ghost small" title="Proponi automaticamente chi parla in ogni segmento">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 14a4 4 0 1 0-8 0"/><circle cx="12" cy="7" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+        <span id="diarLabel">Identifica interlocutori</span>
+      </button>
+      <button class="icon-btn" data-open="help" title="Aiuto" aria-label="Aiuto">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.4 2.3c-.6.3-.9.7-.9 1.4v.3"/><path d="M12 17h.01"/></svg>
+      </button>
+      <label class="chk"><input type="checkbox" id="tsChk" /> <span>Includi i tempi</span></label>
+      <a id="dlTxt" class="btn ghost small">.txt</a>
+      <a id="dlDocx" class="btn small">Esporta .docx</a>
+    </div>
+
+    <div class="player-bar">
+      <audio id="player" controls preload="auto"></audio>
+      <div class="under-player">
+        <p class="shortcuts">
+          <kbd>Spazio</kbd> riproduci o pausa <span class="dot">·</span>
+          <kbd>R</kbd> ripeti il segmento <span class="dot">·</span>
+          clicca un segmento o una parola per ascoltarlo
+        </p>
+        <div id="speakerLegend" class="speaker-legend" aria-label="Interlocutori"></div>
+      </div>
+    </div>
+
+    <div class="sheet">
+      <div class="sheet-legend">
+        <span class="lg lg-literal">Testo letterale — modificabile</span>
+        <span class="lg lg-readable">riferimento</span>
+      </div>
+      <div id="segments" class="segments"></div>
+    </div>
+  </section>
+
+  <!-- ===== Pannello Aiuto ===== -->
+  <div id="help" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-scrim" data-close></div>
+    <aside class="drawer-panel" role="dialog" aria-label="Aiuto">
+      <header class="drawer-head">
+        <h2>Come funziona</h2>
+        <button class="icon-btn" data-close aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="drawer-body">
+        <h3>Cosa fa Verbatim</h3>
+        <p>Trascrive un file audio o video <strong>parola per parola</strong>, esattamente come è
+          stato detto — comprese parole inventate, errori ed esitazioni. Non corregge il testo
+          verso parole plausibili: questo è il suo scopo.</p>
+
+        <h3>I due livelli</h3>
+        <p><strong>Testo letterale</strong> — la riga principale, fedele e modificabile.<br>
+          <strong>Riferimento</strong> — una seconda riga più leggibile, solo come aiuto.</p>
+
+        <h3>Passi</h3>
+        <ol>
+          <li>Trascina un file (o usa “Scegli dal computer”).</li>
+          <li>Attendi la trascrizione (vedi la barra di avanzamento).</li>
+          <li>Apri, riascolta e correggi. Clicca una parola per riascoltare quel punto.</li>
+          <li>Indica chi parla (a mano o con “Identifica interlocutori”).</li>
+          <li>Esporta in .docx o .txt.</li>
+        </ol>
+
+        <h3>Scorciatoie</h3>
+        <ul class="kbd-list">
+          <li><kbd>Spazio</kbd> riproduci / pausa</li>
+          <li><kbd>R</kbd> ripeti il segmento in ascolto</li>
+          <li>Clic su una parola → riascolta quel punto</li>
+        </ul>
+
+        <h3>Formati supportati</h3>
+        <p id="helpFormats">Audio e video. Da un video viene usata solo la traccia audio.</p>
+
+        <h3>Tempi e limiti</h3>
+        <p>Circa 1–3 minuti di attesa per ogni minuto di audio (senza scheda grafica dedicata).
+          Durata consigliata fino a ~60 minuti per file.</p>
+
+        <h3>Privacy</h3>
+        <p>Tutto avviene sul tuo computer. L'audio non lascia mai la macchina. Dopo il primo
+          avvio (download modelli) funziona anche senza internet.</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ===== Pannello Informazioni ===== -->
+  <div id="about" class="drawer hidden" aria-hidden="true">
+    <div class="drawer-scrim" data-close></div>
+    <aside class="drawer-panel" role="dialog" aria-label="Informazioni">
+      <header class="drawer-head">
+        <h2>Informazioni</h2>
+        <button class="icon-btn" data-close aria-label="Chiudi">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </header>
+      <div class="drawer-body">
+        <p class="about-line"><span>Verbatim</span><span id="aboutVersion">versione —</span></p>
+        <p class="about-line"><span>Autore</span><span>Lorenzo Nesler</span></p>
+        <p class="about-line"><span>Sito</span>
+          <a href="https://aiautomationcoach.com" target="_blank" rel="noopener">aiautomationcoach.com</a></p>
+        <p class="about-line"><span>Codice</span>
+          <a id="aboutRepo" href="#" target="_blank" rel="noopener">GitHub</a></p>
+        <p class="about-line"><span>Licenza</span><span>MIT — open source</span></p>
+
+        <h3>Avviso legale</h3>
+        <div class="about-legal">
+          <p>Strumento di supporto educativo/clinico, <strong>non un dispositivo medico</strong>.
+            La trascrizione automatica può contenere errori e va <strong>sempre verificata</strong>
+            da una persona.</p>
+          <p>Registrare e trascrivere la voce di un minore richiede un <strong>consenso valido</strong>
+            di chi ne ha la responsabilità genitoriale. Il responsabile del trattamento dei dati
+            (GDPR) sei tu.</p>
+          <p>Il software è fornito “così com'è”, senza garanzie. L'autore non è responsabile
+            dell'uso che ne viene fatto.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

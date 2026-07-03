@@ -1,0 +1,38 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# --- dati locali dell'utente (mai versionati) ---
+# trascrizioni + audio dei minori: RESTANO LOCALI
+projects/
+*.wav
+# marcatore accettazione disclaimer
+.accepted
+
+# --- modelli scaricati (grandi, si riscaricano al primo avvio) ---
+models/
+*.onnx
+*.pt
+
+# --- artefatti di build / packaging ---
+# download cache (Python embeddable, ffmpeg, get-pip)
+build/_dl/
+# cartella portable generata (Python + deps: enorme)
+build/portable/
+dist/
+installer/output/
+*.exe
+
+# --- log di build ---
+build/*.log
+
+# --- config locale editor/harness ---
+.claude/
+
+# --- sistema / editor ---
+.DS_Store
+Thumbs.db
