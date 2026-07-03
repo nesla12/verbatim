@@ -6,6 +6,35 @@ L'audio dei minori **non lascia mai il computer**.
 
 Creato da **Lorenzo Nesler** · [aiautomationcoach.com](https://aiautomationcoach.com) · open source (licenza **MIT**).
 
+---
+
+## 📥 Come installare (per insegnanti — nessuna conoscenza tecnica)
+
+> Non serve installare Python né altro. Bastano 3 passi.
+
+**1. Scarica il programma**
+Vai alla pagina **[Download / Releases »](https://github.com/nesla12/verbatim/releases/latest)**
+e clicca su **`Verbatim-Setup.exe`**. È un file grande (~300 MB): il download può richiedere
+qualche minuto.
+
+**2. Aprilo con un doppio clic**
+Windows potrebbe mostrare un avviso blu **"Windows ha protetto il PC / Editore sconosciuto"**.
+È normale: significa solo che il programma non è firmato con un certificato a pagamento, **non**
+che sia pericoloso (il codice è pubblico e aperto). Per continuare:
+clicca su **"Ulteriori informazioni"** → poi sul pulsante **"Esegui comunque"**.
+
+**3. Segui l'installazione e apri Verbatim**
+Clicca *Avanti* fino alla fine. Alla fine trovi l'icona **Verbatim** sul desktop e nel menu Start:
+doppio clic e si apre da solo nel browser.
+
+**Al primo avvio** il programma scarica una sola volta i modelli (serve Internet, pochi minuti).
+**Da lì in poi funziona anche senza Internet.** L'audio resta sempre e solo sul tuo computer.
+
+Richiede **Windows 10 o 11**. Se qualcosa non è chiaro, dentro il programma c'è il pulsante
+**"Come funziona"** che spiega tutto passo passo.
+
+---
+
 ## Come funziona
 
 Due livelli per ogni segmento di parlato:
@@ -17,6 +46,13 @@ Due livelli per ogni segmento di parlato:
   solo come aiuto di lettura. Non e' l'artefatto principale.
 - **Interlocutori**: la diarizzazione automatica (offline) propone chi parla in ogni segmento;
   tu correggi e rinomini le etichette (es. "Bambino", "Maestra"). Finiscono negli export.
+
+---
+
+# Per sviluppatori
+
+> Da qui in poi è materiale tecnico (avvio da codice, test, build). Gli insegnanti possono
+> ignorarlo: basta l'installer descritto sopra.
 
 ## Requisiti
 
