@@ -14,7 +14,14 @@
 [Setup]
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppPublisher=Verbatim
+AppPublisher=Lorenzo Nesler - aiautomationcoach.com
+AppPublisherURL=https://aiautomationcoach.com
+; INSTALLAZIONE PER-UTENTE (niente amministratore, niente UAC): affidabile e senza attriti.
+; L'installazione in Program Files richiedeva l'elevazione e su alcune macchine causava
+; un errore all'avvio automatico ("CallSpawnServer") e copie incomplete dei file. Con
+; PrivilegesRequired=lowest il programma si installa in %LocalAppData%\Programs\Verbatim,
+; cartella scrivibile dall'utente: nessuna elevazione, avvio affidabile.
+PrivilegesRequired=lowest
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes

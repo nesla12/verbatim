@@ -71,7 +71,8 @@ def _start_server(port: int, no_window: bool) -> None:
 
 
 def _window() -> None:
-    """Finestra di avvio: barra animata + stato; poi 'Verbatim è in esecuzione'."""
+    """Finestra di avvio evidente: barra animata, cronometro, durata stimata e rassicurazione;
+    poi diventa 'Verbatim è pronto'."""
     try:
         import tkinter as tk
         from tkinter import ttk
@@ -80,46 +81,79 @@ def _window() -> None:
         while True:
             time.sleep(3600)
 
+    # palette coerente con l'app (carta + indaco)
+    PAPER, INK, MUTED, ACCENT, OK = "#faf8f4", "#2b2740", "#6b6880", "#4b3f8f", "#2e7d52"
+
     root = tk.Tk()
     root.title("Verbatim")
-    root.geometry("400x190")
+    root.configure(bg=PAPER)
     root.resizable(False, False)
+    W, H = 500, 340
+    x = (root.winfo_screenwidth() - W) // 2
+    y = (root.winfo_screenheight() - H) // 3
+    root.geometry(f"{W}x{H}+{x}+{y}")
+    root.attributes("-topmost", True)                      # porta in primo piano all'avvio
+    root.after(1800, lambda: root.attributes("-topmost", False))
 
-    title = tk.Label(root, text="Verbatim si sta avviando…", font=("Segoe UI", 13, "bold"))
-    title.pack(pady=(24, 6))
-    msg = tk.Label(root, text=_state["phase"], fg="#555", font=("Segoe UI", 10),
-                   wraplength=360, justify="center")
-    msg.pack()
-    bar = ttk.Progressbar(root, mode="indeterminate", length=280)
-    bar.pack(pady=14)
-    bar.start(12)
-    hint = tk.Label(root, text="Il browser si aprirà da solo. Non chiudere questa finestra.",
-                    fg="#999", font=("Segoe UI", 8))
-    hint.pack(side="bottom", pady=10)
+    def lbl(text, font, fg, pady=(0, 0)):
+        w = tk.Label(root, text=text, font=font, fg=fg, bg=PAPER,
+                     wraplength=W - 56, justify="center")
+        w.pack(pady=pady)
+        return w
 
-    state_ui = {"btn": None}
+    lbl("Verbatim", ("Georgia", 20, "bold"), INK, (26, 2))
+    title = lbl("Si sta avviando…", ("Segoe UI", 14, "bold"), INK, (0, 2))
+    phase = lbl(_state["phase"], ("Segoe UI", 10), MUTED, (2, 4))
+
+    # barra animata (spessa, ben visibile)
+    style = ttk.Style(root)
+    try:
+        style.theme_use("clam")
+        style.configure("V.Horizontal.TProgressbar", troughcolor="#ece8e0",
+                        background=ACCENT, thickness=14, borderwidth=0)
+        bar = ttk.Progressbar(root, mode="indeterminate", length=340,
+                              style="V.Horizontal.TProgressbar")
+    except Exception:
+        bar = ttk.Progressbar(root, mode="indeterminate", length=340)
+    bar.pack(pady=(6, 8))
+    bar.start(11)
+
+    timer = lbl("Tempo trascorso: 0 secondi", ("Segoe UI", 10, "bold"), ACCENT, (0, 10))
+
+    info = lbl("Il primo avvio richiede di solito meno di un minuto: sta caricando i modelli "
+               "linguistici. Le volte successive è molto più veloce.",
+               ("Segoe UI", 9), MUTED, (0, 4))
+    reassure = lbl("Puoi fare altro nel frattempo. Il browser si aprirà da solo quando è pronto — "
+                   "lascia aperta questa finestra.", ("Segoe UI", 9), MUTED, (0, 0))
+
+    state_ui = {"btn": None, "start": time.time()}
 
     def tick() -> None:
         if _state["error"]:
             title.config(text="Si è verificato un errore")
-            msg.config(text=_state["error"], fg="#b00020")
-            bar.stop()
-            bar.pack_forget()
-            hint.config(text="Chiudi questa finestra e riprova. Se persiste, contatta l'assistenza.")
+            phase.config(text=_state["error"], fg="#b00020")
+            bar.stop(); bar.pack_forget(); timer.pack_forget()
+            info.config(text="Chiudi questa finestra e riprova.")
+            reassure.config(text="Se il problema continua, contatta l'assistenza.")
             return
         if _state["ready"]:
-            title.config(text="Verbatim è in esecuzione")
-            msg.config(text="La trascrizione è aperta nel browser.", fg="#555")
-            bar.stop()
-            bar.pack_forget()
-            hint.config(text="Chiudi questa finestra per uscire.")
+            title.config(text="Verbatim è pronto!", fg=OK)
+            phase.config(text="La trascrizione è aperta nel tuo browser.", fg=MUTED)
+            bar.stop(); bar.pack_forget(); timer.pack_forget()
+            info.config(text="Se hai chiuso la scheda per sbaglio, riaprila col pulsante qui sotto.")
+            reassure.config(text="Per uscire dal programma, chiudi questa finestra.")
             if state_ui["btn"] is None:
                 state_ui["btn"] = tk.Button(root, text="Apri di nuovo nel browser",
+                                            font=("Segoe UI", 10), bg=ACCENT, fg="white",
+                                            activebackground="#3c3273", activeforeground="white",
+                                            relief="flat", padx=14, pady=6, cursor="hand2",
                                             command=lambda: webbrowser.open(_state["url"]))
                 state_ui["btn"].pack(pady=6)
             return
-        msg.config(text=_state["phase"])
-        root.after(300, tick)
+        phase.config(text=_state["phase"])
+        elapsed = int(time.time() - state_ui["start"])
+        timer.config(text=f"Tempo trascorso: {elapsed} second{'o' if elapsed == 1 else 'i'}")
+        root.after(250, tick)
 
     tick()
     root.mainloop()
