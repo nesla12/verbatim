@@ -41,9 +41,15 @@ def _wait_until_up(port: int, timeout: float = 60.0) -> bool:
     return False
 
 
+# tempo minimo in cui la finestra di caricamento resta visibile, così l'utente la nota
+# sempre (anche quando i modelli sono già in cache e l'avvio è quasi istantaneo).
+_MIN_SPLASH_S = 3.0
+
+
 def _start_server(port: int, no_window: bool) -> None:
     """Carica i modelli e avvia uvicorn. Aggiorna _state per la finestra di avvio."""
     try:
+        t0 = time.time()
         _state["phase"] = "Preparazione dei modelli… (fino a un minuto al primo avvio)"
         import uvicorn
 
@@ -62,10 +68,16 @@ def _start_server(port: int, no_window: bool) -> None:
         threading.Thread(target=server.run, daemon=True).start()
         url = f"http://127.0.0.1:{port}"
         _state["phase"] = "Apertura del browser…"
-        if _wait_until_up(port):
-            webbrowser.open(url)
+        up = _wait_until_up(port)
+        # tieni visibile la finestra di caricamento almeno qualche secondo
+        rest = _MIN_SPLASH_S - (time.time() - t0)
+        if rest > 0:
+            time.sleep(rest)
         _state["url"] = url
-        _state["ready"] = True
+        _state["ready"] = True          # la finestra mostra "Verbatim è pronto!"
+        time.sleep(1.1)                  # lascia leggere il messaggio verde…
+        if up:
+            webbrowser.open(url)         # …poi apre il browser
     except Exception as e:  # noqa: BLE001
         _state["error"] = str(e)
 
